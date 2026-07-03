@@ -1,0 +1,217 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: #f5f7fb;
+  color: #152033;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.lottery-stage {
+  background:
+    linear-gradient(120deg, rgba(18, 7, 80, 0.96), rgba(88, 27, 190, 0.62) 48%, rgba(16, 2, 48, 0.98)),
+    radial-gradient(circle at 54% 14%, rgba(120, 66, 255, 0.42), transparent 24rem),
+    radial-gradient(circle at 18% 24%, rgba(34, 211, 238, 0.16), transparent 20rem);
+}
+
+.lottery-stage::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(135deg, transparent 0 34%, rgba(255, 255, 255, 0.08) 34.2%, transparent 35% 100%),
+    linear-gradient(25deg, transparent 0 72%, rgba(34, 211, 238, 0.12) 72.2%, transparent 73% 100%);
+  opacity: 0.54;
+  pointer-events: none;
+}
+
+.lottery-stage::after {
+  position: absolute;
+  right: -10%;
+  bottom: 10%;
+  left: -10%;
+  height: 14rem;
+  content: "";
+  background: linear-gradient(90deg, transparent 0 12%, rgba(34, 211, 238, 0.76) 17%, transparent 24% 74%, rgba(255, 255, 255, 0.68) 82%, transparent 88%);
+  clip-path: polygon(0 70%, 10% 70%, 14% 50%, 20% 72%, 76% 72%, 81% 50%, 88% 72%, 100% 72%, 100% 79%, 86% 79%, 81% 61%, 77% 79%, 19% 79%, 14% 61%, 11% 79%, 0 79%);
+  opacity: 0.34;
+  pointer-events: none;
+}
+
+.stage-beams {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.stage-beam {
+  position: absolute;
+  top: -18rem;
+  width: 16rem;
+  height: 44rem;
+  transform-origin: top center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(34, 211, 238, 0.13) 32%, transparent 76%);
+  filter: blur(10px);
+  opacity: 0.48;
+  mix-blend-mode: screen;
+}
+
+.stage-beam-left {
+  left: 5%;
+  transform: rotate(-24deg);
+}
+
+.stage-beam-center {
+  left: 43%;
+  width: 18rem;
+  height: 40rem;
+  transform: rotate(2deg);
+  opacity: 0.36;
+}
+
+.stage-beam-right {
+  right: 4%;
+  transform: rotate(25deg);
+}
+
+.stage-glint {
+  position: absolute;
+  top: 8.5rem;
+  width: 7rem;
+  height: 0.18rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), rgba(34, 211, 238, 0.84), transparent);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.58), 0 0 34px rgba(34, 211, 238, 0.28);
+  opacity: 0.74;
+  transform: rotate(-8deg);
+}
+
+.stage-glint-left {
+  left: 18%;
+}
+
+.stage-glint-center {
+  left: 52%;
+  top: 7rem;
+  width: 5.5rem;
+  opacity: 0.58;
+  transform: rotate(5deg);
+}
+
+.stage-glint-right {
+  right: 13%;
+  top: 9.5rem;
+  transform: rotate(14deg);
+}
+
+.lottery-title {
+  color: #f8fbff;
+  text-shadow:
+    0 2px 0 rgba(10, 14, 50, 0.85),
+    0 12px 28px rgba(34, 211, 238, 0.22);
+}
+
+.number-board {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-width: min(100%, 72rem);
+}
+
+.number-plate {
+  position: relative;
+  flex: 0 1 clamp(12rem, 18vw, 14rem);
+  overflow: hidden;
+  box-shadow:
+    0 18px 42px rgba(11, 9, 44, 0.36),
+    0 0 28px rgba(34, 211, 238, 0.12);
+}
+
+.number-board[data-count="1"] .number-plate {
+  flex-basis: clamp(17rem, 44vw, 25rem);
+}
+
+.number-board[data-count="2"] .number-plate {
+  flex-basis: clamp(15rem, 31vw, 20rem);
+}
+
+.number-board[data-count="3"] .number-plate {
+  flex-basis: clamp(12rem, 18vw, 14rem);
+}
+
+@media (max-width: 640px) {
+  .number-board {
+    gap: 0.75rem;
+  }
+
+  .number-plate,
+  .number-board[data-count="1"] .number-plate,
+  .number-board[data-count="2"] .number-plate,
+  .number-board[data-count="3"] .number-plate {
+    flex-basis: min(100%, 20rem);
+  }
+}
+
+.number-plate::before,
+.number-plate::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 26%;
+  content: "";
+  pointer-events: none;
+}
+
+.number-plate::before {
+  top: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), transparent);
+}
+
+.number-plate::after {
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(226, 232, 240, 0.84), transparent);
+}
+
+.number-plate.is-rolling {
+  animation: platePulse 0.16s linear infinite;
+}
+
+@keyframes platePulse {
+  0% {
+    transform: translateY(-2px);
+    filter: blur(0.7px);
+  }
+
+  100% {
+    transform: translateY(2px);
+    filter: blur(0);
+  }
+}
