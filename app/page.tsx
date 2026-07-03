@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BadgeCheck, Play, RotateCcw } from "lucide-react";
+import { ArrowRight, BadgeCheck, Play } from "lucide-react";
 import {
   DrawLog,
   defaultConfig,
@@ -11,6 +11,7 @@ import {
   loadLotteryConfig,
   parseList,
   saveDrawLogs,
+  saveLotteryConfig,
   type LotteryConfig
 } from "@/lib/lottery";
 
@@ -151,15 +152,29 @@ export default function LotteryPage() {
     }, 3200);
   };
 
-  const resetDraws = () => {
+  const goNextRound = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
+
+    const latestConfig = loadLotteryConfig();
+    const rounds = latestConfig.rounds.length > 0 ? latestConfig.rounds : defaultConfig.rounds;
+    const currentIndex = Math.max(
+      0,
+      rounds.findIndex((round) => round.id === latestConfig.activeRoundId)
+    );
+    const nextRound = rounds[(currentIndex + 1) % rounds.length];
+    const nextConfig = {
+      ...latestConfig,
+      rounds,
+      activeRoundId: nextRound.id
+    };
+
+    setConfig(nextConfig);
+    saveLotteryConfig(nextConfig);
     setRolling(false);
     setCurrentWinners([]);
-    setDisplayNumbers(createHiddenPlates(activeRound?.count ?? 1));
-    setDrawLogs([]);
-    saveDrawLogs([]);
+    setDisplayNumbers(createHiddenPlates(nextRound.count));
   };
 
   return (
@@ -222,10 +237,10 @@ export default function LotteryPage() {
             </button>
             <button
               className="inline-flex h-14 items-center justify-center gap-2 rounded-md border border-cyan-200/25 bg-white/[0.08] px-5 text-sm font-semibold text-cyan-50 transition hover:bg-white/[0.14]"
-              onClick={resetDraws}
+              onClick={goNextRound}
             >
-              <RotateCcw className="h-4 w-4" />
-              重置
+              <ArrowRight className="h-4 w-4" />
+              下一轮
             </button>
           </div>
 
