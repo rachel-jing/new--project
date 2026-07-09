@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "天罡智算抽奖系统",
+  title: "第三届人工智能与智算发展论坛",
   description: "滚动号码牌抽奖系统，支持后台轮次、名额、号码池与预设中奖号码。"
 };
 

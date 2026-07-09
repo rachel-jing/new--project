@@ -27,6 +27,13 @@ const pickRandom = (pool: string[], count: number) => {
 const createHiddenPlates = (count: number) =>
   Array.from({ length: Math.max(1, count) }, () => "????");
 
+type PendingDraw = {
+  finalWinners: string[];
+  latestLogs: DrawLog[];
+  presetCount: number;
+  roundName: string;
+};
+
 export default function LotteryPage() {
   const [config, setConfig] = useState<LotteryConfig>(defaultConfig);
   const [rolling, setRolling] = useState(false);
@@ -37,6 +44,7 @@ export default function LotteryPage() {
   const [drawLogs, setDrawLogs] = useState<DrawLog[]>([]);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pendingDrawRef = useRef<PendingDraw | null>(null);
 
   const participants = useMemo(() => parseList(config.participantsText), [config.participantsText]);
   const activeRound =
@@ -55,7 +63,7 @@ export default function LotteryPage() {
     )
   );
   const plateCount = Math.max(1, activeRound?.count ?? 1);
-  const drawDisabled = rolling || participants.length === 0 || availablePool.length === 0;
+  const drawDisabled = !rolling && (participants.length === 0 || availablePool.length === 0);
   const visiblePlates = Array.from(
     { length: plateCount },
     (_, index) => displayNumbers[index] ?? "????"
@@ -86,7 +94,41 @@ export default function LotteryPage() {
     };
   }, []);
 
+  const stopDraw = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    const pendingDraw = pendingDrawRef.current;
+    if (!pendingDraw) {
+      setRolling(false);
+      return;
+    }
+
+    const nextLog: DrawLog = {
+      id: crypto.randomUUID(),
+      roundName: pendingDraw.roundName,
+      winners: pendingDraw.finalWinners,
+      mode: pendingDraw.presetCount > 0 ? "preset" : "random",
+      time: new Date().toLocaleString("zh-CN", { hour12: false })
+    };
+    const nextLogs = [nextLog, ...pendingDraw.latestLogs];
+
+    setDisplayNumbers(pendingDraw.finalWinners);
+    setCurrentWinners(pendingDraw.finalWinners);
+    setRolling(false);
+    setDrawLogs(nextLogs);
+    saveDrawLogs(nextLogs);
+    pendingDrawRef.current = null;
+  };
+
   const startDraw = () => {
+    if (rolling) {
+      stopDraw();
+      return;
+    }
+
     const latestConfig = loadLotteryConfig();
     const latestLogs = loadDrawLogs();
     const latestParticipants = parseList(latestConfig.participantsText);
@@ -96,7 +138,7 @@ export default function LotteryPage() {
     const latestUsedWinners = new Set(latestLogs.flatMap((log) => log.winners));
     const latestAvailablePool = latestParticipants.filter((item) => !latestUsedWinners.has(item));
 
-    if (!latestRound || rolling || latestParticipants.length === 0 || latestAvailablePool.length === 0) {
+    if (!latestRound || latestParticipants.length === 0 || latestAvailablePool.length === 0) {
       return;
     }
 
@@ -118,6 +160,13 @@ export default function LotteryPage() {
       ...pickRandom(randomPool, Math.max(0, randomNeeded))
     ].slice(0, count);
 
+    pendingDrawRef.current = {
+      finalWinners,
+      latestLogs,
+      presetCount: presetSelection.length,
+      roundName: latestRound.name
+    };
+
     setConfig(latestConfig);
     setCurrentWinners([]);
     setDisplayNumbers(createHiddenPlates(count));
@@ -129,33 +178,14 @@ export default function LotteryPage() {
         Array.from({ length: count }, () => rollingPool[Math.floor(Math.random() * rollingPool.length)])
       );
     }, 72);
-
-    window.setTimeout(() => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-
-      const nextLog: DrawLog = {
-        id: crypto.randomUUID(),
-        roundName: latestRound.name,
-        winners: finalWinners,
-        mode: presetSelection.length > 0 ? "preset" : "random",
-        time: new Date().toLocaleString("zh-CN", { hour12: false })
-      };
-      const nextLogs = [nextLog, ...latestLogs];
-
-      setDisplayNumbers(finalWinners);
-      setCurrentWinners(finalWinners);
-      setRolling(false);
-      setDrawLogs(nextLogs);
-      saveDrawLogs(nextLogs);
-    }, 3200);
   };
 
   const goNextRound = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
+    pendingDrawRef.current = null;
 
     const latestConfig = loadLotteryConfig();
     const rounds = latestConfig.rounds.length > 0 ? latestConfig.rounds : defaultConfig.rounds;
@@ -197,7 +227,7 @@ export default function LotteryPage() {
               VIBE CODING
             </Link>
             <h1 className="lottery-title mt-2 text-3xl font-black sm:text-5xl">
-              天罡智算抽奖系统
+              第三届人工智能与智算发展论坛
             </h1>
           </div>
         </div>
@@ -233,7 +263,7 @@ export default function LotteryPage() {
               onClick={startDraw}
             >
               <Play className="h-5 w-5 fill-current" />
-              {rolling ? "抽取中" : availablePool.length === 0 ? "已抽完" : "开始抽奖"}
+              {rolling ? "停止抽奖" : availablePool.length === 0 ? "已抽完" : "开始抽奖"}
             </button>
             <button
               className="inline-flex h-14 items-center justify-center gap-2 rounded-md border border-cyan-200/25 bg-white/[0.08] px-5 text-sm font-semibold text-cyan-50 transition hover:bg-white/[0.14]"
